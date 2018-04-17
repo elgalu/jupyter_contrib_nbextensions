@@ -58,10 +58,23 @@ define([
 
         var rows = Array.prototype.concat.apply([], document.querySelectorAll('.list_item.row'));
         rows.forEach(function (row) {
-            if (!filterText || row.querySelector('.item_name').textContent.search(matchExpr) !== -1) {
-                row.style.display = '';
+            // Below code (guards) fixes an undefined textContent error
+            var itemName = row.querySelector('.item_name');
+            if (itemName && itemName.textContent) {
+                if (!filterText) {
+                    // if there is no filter then show them all
+                    row.style.display = ''; //show
+                } else {
+                    // search(matchExpr) === -1 means not found ==> hide then
+                    if (itemName.textContent.search(matchExpr) === -1) {
+                        row.style.display = 'none'; //hide
+                    } else {
+                        row.style.display = ''; //show
+                    }
+                }
             } else {
-                row.style.display = 'none';
+                // No item_name found so show just in case
+                row.style.display = ''; //show
             }
         });
     }
@@ -122,6 +135,14 @@ define([
             .appendTo(btns);
 
         $('#filterkeyword').on('keyup', filterRowsDefaultParams);
+
+        // Hook into sessions reload else the filter gets cleared
+        // https://github.com/jupyter/notebook/blob/master/notebook/static/base/js/events.js
+        // https://github.com/ipython/ipython/wiki/Dev:-Javascript-Events#dashboard-related-events
+        $([IPython.events]).on('draw_notebook_list.NotebookList', filterRowsDefaultParams);
+        // $([IPython.events]).on('app_initialized.DashboardApp', filterRowsDefaultParams);
+        // $([IPython.events]).on('sessions_loaded.Dashboard', filterRowsDefaultParams);
+
         config.load();
     }
 
