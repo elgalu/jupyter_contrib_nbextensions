@@ -270,6 +270,13 @@ define([
             msg = msg.replace('${duration}', humanized_duration(exec_time));
         }
         timing_area.text(msg);
+
+        // Below code avoids polluting the notebook by only showing slow cells time
+        // Note: exec_time is in ms
+        if (exec_time && exec_time < 1100) {
+            timing_area.remove();
+        }
+
         return timing_area;
     }
 
